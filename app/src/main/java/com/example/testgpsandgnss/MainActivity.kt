@@ -1,10 +1,12 @@
 package com.example.testgpsandgnss
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.example.testgpsandgnss.databinding.ActivityMainBinding
 import com.google.android.gms.location.*
 
@@ -22,7 +24,7 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        requestPermission()
+        checkPermission()
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
@@ -78,37 +80,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestPermission() {
-        val permissionAccessCoarseLocationApproved =
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                    PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                    PackageManager.PERMISSION_GRANTED
 
-        if (permissionAccessCoarseLocationApproved) {
-            val backgroundLocationPermissionApproved = ActivityCompat
-                .checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) ==
-                    PackageManager.PERMISSION_GRANTED
-
-            if (backgroundLocationPermissionApproved) {
-                // フォアグラウンドとバックグランドのバーミッションがある
-            } else {
-                // フォアグラウンドのみOKなので、バックグラウンドの許可を求める
-                ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
-                    REQUEST_CODE_LOCATION
-                )
-            }
-        } else {
-            // 位置情報の権限が無いため、許可を求める
+    private fun checkPermission(){
+        if (!checkSinglePermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+            || !checkSinglePermission(Manifest.permission.ACCESS_FINE_LOCATION)
+        ){
             ActivityCompat.requestPermissions(this,
-                arrayOf(
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                ),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION
+                    ,Manifest.permission.ACCESS_COARSE_LOCATION),
                 REQUEST_CODE_LOCATION
             )
         }
     }
+
+    private fun Context.checkSinglePermission(permission: String): Boolean =
+        ContextCompat.checkSelfPermission(applicationContext, permission) == PackageManager.PERMISSION_GRANTED
 }
