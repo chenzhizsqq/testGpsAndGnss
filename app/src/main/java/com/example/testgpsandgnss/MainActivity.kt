@@ -3,8 +3,11 @@ package com.example.testgpsandgnss
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Looper
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.testgpsandgnss.databinding.ActivityMainBinding
@@ -19,6 +22,23 @@ class MainActivity : AppCompatActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
 
+    //确定是否能够获取本地GPS begin
+    private var requestingLocationUpdates = true
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("REQUESTING_LOCATION_UPDATES_KEY", requestingLocationUpdates)
+        super.onSaveInstanceState(outState)
+    }
+    private fun updateValuesFromBundle(savedInstanceState: Bundle?) {
+        savedInstanceState ?: return
+
+        // Update the value of requestingLocationUpdates from the Bundle.
+        if (savedInstanceState.keySet().contains("REQUESTING_LOCATION_UPDATES_KEY")) {
+            requestingLocationUpdates = savedInstanceState.getBoolean(
+                "REQUESTING_LOCATION_UPDATES_KEY")
+        }
+    }
+    //确定是否能够获取本地GPS end
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -26,13 +46,16 @@ class MainActivity : AppCompatActivity() {
 
         checkPermission()
 
+        //确定是否能够获取本地GPS
+        updateValuesFromBundle(savedInstanceState)
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         var updatedCount = 0
         locationCallback = object : LocationCallback() {
-            override fun onLocationResult(locationResult: LocationResult?) {
-                locationResult ?: return
-                for (location in locationResult.locations){
+            override fun onLocationResult(p0: LocationResult) {
+                super.onLocationResult(p0)
+                for (location in p0.locations){
                     updatedCount++
                     binding.locationText.text = "更新次数：[${updatedCount}] GPS位置：${location.latitude} , ${location.longitude}"
                 }
@@ -42,7 +65,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        startLocationUpdates()
+        if (requestingLocationUpdates) startLocationUpdates()
     }
 
     override fun onPause() {
@@ -65,7 +88,7 @@ class MainActivity : AppCompatActivity() {
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
-            null)
+            Looper.getMainLooper())
     }
 
     private fun stopLocationUpdates() {
@@ -73,7 +96,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createLocationRequest(): LocationRequest? {
-        return LocationRequest.create()?.apply {
+        return LocationRequest.create().apply {
             interval = 10000
             fastestInterval = 5000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
