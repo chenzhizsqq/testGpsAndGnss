@@ -18,6 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val REQUEST_CODE_LOCATION = 100
+    private val REQUEST_CODE_LOCATION_BACKGROUND = 1001
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
@@ -45,6 +46,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         checkPermission()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            checkPermissionBackBACKGROUND()
+        }
 
         //确定是否能够获取本地GPS
         updateValuesFromBundle(savedInstanceState)
@@ -74,7 +79,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startLocationUpdates() {
-        val locationRequest = createLocationRequest() ?: return
+        val locationRequest = createLocationRequest()
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -95,7 +100,7 @@ class MainActivity : AppCompatActivity() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
-    private fun createLocationRequest(): LocationRequest? {
+    private fun createLocationRequest(): LocationRequest {
         return LocationRequest.create().apply {
             interval = 10000
             fastestInterval = 5000
@@ -112,6 +117,18 @@ class MainActivity : AppCompatActivity() {
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION
                     ,Manifest.permission.ACCESS_COARSE_LOCATION),
                 REQUEST_CODE_LOCATION
+            )
+        }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun checkPermissionBackBACKGROUND(){
+        if (!checkSinglePermission(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        ){
+            ActivityCompat.requestPermissions(this,
+                arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                REQUEST_CODE_LOCATION_BACKGROUND
             )
         }
     }
