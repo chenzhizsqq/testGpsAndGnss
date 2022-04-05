@@ -34,7 +34,7 @@ class MainActivity : AppCompatActivity() {
                 locationResult ?: return
                 for (location in locationResult.locations){
                     updatedCount++
-                    binding.locationText.text = "[${updatedCount}] ${location.latitude} , ${location.longitude}"
+                    binding.locationText.text = "更新次数：[${updatedCount}] GPS位置：${location.latitude} , ${location.longitude}"
                 }
             }
         }
