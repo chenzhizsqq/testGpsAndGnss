@@ -13,7 +13,7 @@ import androidx.core.content.ContextCompat
 import com.example.testgpsandgnss.databinding.ActivityMainBinding
 import com.google.android.gms.location.*
 
-// 参考 https://dev.classmethod.jp/articles/android-get-location/
+//https://developer.android.com/training/location/permissions
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
